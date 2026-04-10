@@ -1,5 +1,5 @@
 """
-Ranker v8: EWMA ranking with dynamic spread filter.
+Ranker: impulse-gated EWMA ranking with dynamic spread filter.
 
 1. SPREAD FILTER (dynamic, per-cycle):
    Compute median spread across all coins from LIVE ticker data.

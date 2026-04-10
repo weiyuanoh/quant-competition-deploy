@@ -1,23 +1,22 @@
 """
-Market regime detector v8: data-driven HMM state analysis with tiered exposure.
+Market regime detector: data-driven HMM state analysis with interpolated exposure.
 
 KEY DESIGN PRINCIPLE:
 States are NOT pre-labeled. The HMM discovers them, we analyze them AFTER:
   1. PCA: 43 coins → 4 PCs (captures ~72% of cross-sectional variance)
   2. HMM: 3-state Gaussian HMM on 4D PC score vectors (unsupervised)
   3. State analysis: for each state, measure forward returns, vol, duration
-  4. Exposure tiers: states ranked by forward-return Sharpe:
-       Best  → 1.2x (leveraged — deploy more in favorable conditions)
-       Mid   → 0.6x (moderate — mixed conditions)
-       Worst → 0.10x (minimal — activity compliance floor)
+  4. Exposure mapping: states ranked by forward-return Sharpe:
+       Best  -> 1.0 exposure
+       Mid   -> linearly interpolated
+       Worst -> 0.10 exposure floor
   5. Names: assigned from observed properties (BULL/BEAR + CALM/VOLATILE)
      for logging only — no logic depends on names.
 
 Exposure derivation:
   Linear interpolation from Sharpe ranking with 0.10 floor.
   Best state → ~1.0, worst state → 0.10 (activity compliance).
-  Tested alternatives: 0.15 floor (+2.08%), fixed tiers 1.2/0.6/0.10 (-0.85%).
-  Linear with 0.10 floor gave best result: +2.45% on 4-month backtest.
+  Tested alternatives included higher floors and fixed tiers.
 
 Parameter budget:
   3-state HMM, 4D observations, full covariance:
@@ -147,7 +146,7 @@ class RegimeDetector:
     def fit_hmm(self, pc_scores: np.ndarray, lookback: int = 1440):
         """Fit HMM and analyze discovered states.
 
-        This is the core v7 method. Steps:
+        Steps:
         1. Fit 3-state HMM on K-dimensional PC observations
         2. Predict state sequence for all observations
         3. Analyze each state's properties (forward returns, vol, duration)

@@ -1,13 +1,13 @@
 """
-Cross-sectional feature engine — Finals v7.
+Cross-sectional feature engine.
 
 ALL LOOKBACKS ARE IN 1-HOUR BARS. One bar = one hour.
 Annualization: sqrt(24 * 365) = sqrt(8760) ≈ 93.6 for hourly data.
 
-v7 additions:
-- compute_momentum_score(): weighted composite for ranking
-- check_entry_gate(): simple binary conditions for entry filtering
-- check_breakdown(): technical breakdown exit signal (moved from signals.py)
+Current momentum design:
+- raw impulse gate: r_1h > 1%
+- rank score: 0.8 * EWMA(6h) + 0.2 * EWMA(24h)
+- check_breakdown(): technical breakdown exit signal
 """
 import numpy as np
 from typing import Optional

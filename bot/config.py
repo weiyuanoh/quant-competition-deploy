@@ -5,7 +5,7 @@ All tunable parameters in one place. Override via environment variables.
 ALL LOOKBACKS AND WINDOWS ARE IN 1-HOUR BARS.
 
 DESIGN PHILOSOPHY:
-- EWMA momentum ranking (no arbitrary weights — one param per horizon)
+- Impulse + short-term EWMA momentum ranking
 - Dynamic spread filter (median-based, adapts to market conditions per cycle)
 - Data-driven regime: HMM states analyzed post-fit, exposure from forward returns
   Linear interpolation with 0.10 floor (activity compliance)
@@ -14,7 +14,7 @@ DESIGN PHILOSOPHY:
 - Every parameter justified by cost, statistics, or backtest evidence
 
 PARAMETER JUSTIFICATIONS:
-- EWMA halflives (6h, 24h): captures short-term shifts + daily momentum, averaged equally
+- Gate: r_1h > 1% impulse bar, then rank by 80/20 short/long EWMA momentum
 - Commission: 0.05% maker, 0.10% taker → 10-20 bps round trip
 - Vol-parity: standard risk budgeting
 - Trailing stops: calibrated to hourly crypto vol (~2% daily → 3.5% ≈ 1.7σ)

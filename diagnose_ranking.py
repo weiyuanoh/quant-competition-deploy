@@ -8,7 +8,7 @@ Mirrors the live pipeline:
   4. Run the real Ranker
   5. Report:
      - How many coins survive each filter stage
-     - EWMA score distribution of eligible coins
+     - 80/20 EWMA score distribution of eligible coins
      - Top-10 vs bottom-10 score gap (selectivity proxy)
      - How many coins would be NEW entries given current MAX_NEW_ENTRIES
 
@@ -107,8 +107,8 @@ n_spread_pass = sum(1 for f in raw_features.values()
 # entry gate analysis
 n_gate_pass = sum(1 for f in raw_features.values() if check_entry_gate(f))
 
-# r_24h positive
-n_r24_pos = sum(1 for f in raw_features.values() if f.get("r_24h", 0) > 0)
+# impulse gate
+n_r1_impulse = sum(1 for f in raw_features.values() if f.get("r_1h", 0) > 0.01)
 
 # volume gate
 n_vol_pass = sum(1 for f in raw_features.values() if f.get("volume_ratio", 0) >= 0.8)
@@ -125,7 +125,7 @@ for pair, f in raw_features.items():
 
 print(f"  Total coins with features:          {n_total:>3}")
 print(f"  Pass spread filter (<= median):     {n_spread_pass:>3}  (median spread {median_spread*10000:.1f}bps)")
-print(f"  r_24h > 0 (positive 24h momentum):  {n_r24_pos:>3}")
+print(f"  r_1h > 1% (impulse bar):            {n_r1_impulse:>3}")
 print(f"  volume_ratio >= 0.8:                {n_vol_pass:>3}")
 print(f"  Pass full entry gate:               {n_gate_pass:>3}")
 print(f"  Pass gate AND ewma > 0:             {n_ewma_pos:>3}")
@@ -133,9 +133,9 @@ print(f"  Final eligible (after all filters): {len(eligible):>3}")
 
 # Show top 15 with scores
 print(f"\n  Top 15 ranked candidates (out of {len(eligible)}):")
-print(f"  {'rank':<6}{'pair':<14}{'ewma':>12}{'r_24h':>10}{'spread bps':>13}")
+print(f"  {'rank':<6}{'pair':<14}{'ewma':>12}{'r_1h':>10}{'spread bps':>13}")
 for i, (pair, score, raw) in enumerate(eligible[:15]):
-    print(f"  {i+1:<6}{pair:<14}{score:>+12.6f}{raw.get('r_24h', 0):>+10.4f}"
+    print(f"  {i+1:<6}{pair:<14}{score:>+12.6f}{raw.get('r_1h', 0):>+10.4f}"
           f"{raw.get('spread_pct', 0)*10000:>13.1f}")
 
 # Score distribution
@@ -185,7 +185,6 @@ if len(eligible) >= 6:
         print("✓ Clear score gap between top and bottom — ranking is differentiating.")
 
 # Compare against earlier finding: regime says BEAR with neg fwd_ret
-print("\nNote: regime diagnostic showed all states have NEGATIVE forward returns.")
-print("So even if the ranker picks the 'best' looking coins, they're being chosen")
-print("from a universe that has been losing money on average. EWMA momentum positive")
-print("does NOT mean 'safe to buy' in a market-wide bear regime.")
+print("\nNote: this diagnostic mirrors the current impulse + short-term momentum")
+print("pipeline, but it is only a current-cycle funnel check. It does not prove")
+print("that broad market regime is favorable or that continuation will persist.")
